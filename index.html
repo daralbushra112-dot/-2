@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="محول التاريخ">
+<title>محول التاريخ وحاسبة العمر</title>
+<style>
+:root{--bg:#f4f7f5;--card:#fff;--text:#16241d;--muted:#5d6f66;--accent:#0f766e;--accent-t:#fff;--border:#d5e0da;--soft:#e6f2ee;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1714;--card:#16231e;--text:#e7f1ec;--muted:#93a8a0;--accent:#2dd4bf;--accent-t:#06231f;--border:#27382f;--soft:#1b2e27}}
+:root[data-theme="dark"]{--bg:#0e1714;--card:#16231e;--text:#e7f1ec;--muted:#93a8a0;--accent:#2dd4bf;--accent-t:#06231f;--border:#27382f;--soft:#1b2e27}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;line-height:1.6}
+.app{max-width:520px;margin:0 auto;padding:16px}
+h1{font-size:1.25rem;margin:8px 0 2px}
+.sub{color:var(--muted);font-size:.85rem;margin:0 0 14px}
+.today{background:var(--accent);color:var(--accent-t);border-radius:16px;padding:14px 16px;margin-bottom:14px;font-size:.95rem}
+.today b{display:block;font-size:1.05rem}
+.tabs{display:flex;background:var(--soft);border-radius:12px;padding:4px;margin-bottom:14px}
+.tabs button{flex:1;border:0;background:none;color:var(--muted);padding:10px;border-radius:9px;font:inherit;font-weight:600;cursor:pointer}
+.tabs button.on{background:var(--card);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px}
+label{display:block;font-size:.85rem;color:var(--muted);margin:10px 0 4px}
+input,select{width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);font:inherit}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.seg{display:flex;gap:8px;margin-bottom:6px}
+.seg button{flex:1;padding:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:10px;font:inherit;cursor:pointer}
+.seg button.on{background:var(--accent);color:var(--accent-t);border-color:var(--accent)}
+.go{width:100%;margin-top:14px;padding:13px;border:0;border-radius:12px;background:var(--accent);color:var(--accent-t);font:inherit;font-weight:700;font-size:1rem;cursor:pointer}
+.res{margin-top:14px;background:var(--soft);border-radius:12px;padding:14px;display:none}
+.res.show{display:block}
+.big{font-size:1.15rem;font-weight:700;margin:2px 0}
+.err{color:#c0392b;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.grid div{background:var(--card);border-radius:10px;text-align:center;padding:10px 4px}
+.grid b{display:block;font-size:1.5rem;color:var(--accent)}
+.grid span{font-size:.8rem;color:var(--muted)}
+.line{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px dashed var(--border);font-size:.92rem}
+.line span:first-child{color:var(--muted)}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>محول التاريخ وحاسبة العمر</h1>
+  <p class="sub">هجري (أم القرى) ⇄ ميلادي، وحساب العمر بدقة</p>
+  <div class="today" id="today"></div>
+
+  <div class="tabs">
+    <button id="t1" class="on">تحويل التاريخ</button>
+    <button id="t2">حاسبة العمر</button>
+  </div>
+
+  <section id="p1" class="card">
+    <div class="seg">
+      <button id="cG" class="on">من ميلادي إلى هجري</button>
+      <button id="cH">من هجري إلى ميلادي</button>
+    </div>
+    <div id="cvG">
+      <label>التاريخ الميلادي</label>
+      <input type="date" id="gDate">
+    </div>
+    <div id="cvH" class="hide">
+      <label>التاريخ الهجري</label>
+      <div class="row">
+        <input type="number" id="hD" placeholder="اليوم" min="1" max="30" inputmode="numeric">
+        <select id="hM"></select>
+        <input type="number" id="hY" placeholder="السنة" inputmode="numeric">
+      </div>
+    </div>
+    <button class="go" id="goC">تحويل</button>
+    <div class="res" id="rC"></div>
+  </section>
+
+  <section id="p2" class="card hide">
+    <div class="seg">
+      <button id="aG" class="on">تاريخ الميلاد ميلادي</button>
+      <button id="aH">تاريخ الميلاد هجري</button>
+    </div>
+    <div id="agG">
+      <label>تاريخ الميلاد</label>
+      <input type="date" id="bG">
+    </div>
+    <div id="agH" class="hide">
+      <label>تاريخ الميلاد الهجري</label>
+      <div class="row">
+        <input type="number" id="bhD" placeholder="اليوم" min="1" max="30" inputmode="numeric">
+        <select id="bhM"></select>
+        <input type="number" id="bhY" placeholder="السنة" inputmode="numeric">
+      </div>
+    </div>
+    <button class="go" id="goA">احسب العمر</button>
+    <div class="res" id="rA"></div>
+  </section>
+</div>
+
+<script>
+const HM=["محرم","صفر","ربيع الأول","ربيع الآخر","جمادى الأولى","جمادى الآخرة","رجب","شعبان","رمضان","شوال","ذو القعدة","ذو الحجة"];
+const GM=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+const DAYS=["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+const DAY=864e5;
+const $=id=>document.getElementById(id);
+const fmtH=new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn',{day:'numeric',month:'numeric',year:'numeric',timeZone:'UTC'});
+
+const utc=(y,m,d)=>{const t=new Date(0);t.setUTCFullYear(y,m-1,d);t.setUTCHours(12,0,0,0);return t};
+function toHijri(date){const o={};fmtH.formatToParts(date).forEach(p=>{if(p.type!=='literal')o[p.type]=parseInt(p.value,10)});return{y:o.year,m:o.month,d:o.day}}
+function fromHijri(y,m,d){
+  const approx=Date.UTC(622,6,16,12)+((y-1)*354.367+(m-1)*29.5306+(d-1))*DAY;
+  for(let off=-45;off<=45;off++){
+    const dt=new Date(Math.round(approx/DAY)*DAY+off*DAY+DAY/2*0);
+    dt.setUTCHours(12,0,0,0);
+    const h=toHijri(dt);
+    if(h.y===y&&h.m===m&&h.d===d)return dt;
+  }
+  return null;
+}
+const gParts=dt=>({y:dt.getUTCFullYear(),m:dt.getUTCMonth()+1,d:dt.getUTCDate()});
+const gText=dt=>{const g=gParts(dt);return `${DAYS[dt.getUTCDay()]} ${g.d} ${GM[g.m-1]} ${g.y}م`};
+const hText=h=>`${h.d} ${HM[h.m-1]} ${h.y}هـ`;
+function todayUTC(){const n=new Date();return utc(n.getFullYear(),n.getMonth()+1,n.getDate())}
+function parseDateInput(v){if(!v)return null;const[a,b,c]=v.split('-').map(Number);return utc(a,b,c)}
+function hijriLen(y,m){
+  const ny=m===12?y+1:y,nm=m===12?1:m+1;
+  const a=fromHijri(y,m,1),b=fromHijri(ny,nm,1);
+  return a&&b?Math.round((b-a)/DAY):30;
+}
+function readHijri(dId,mId,yId){
+  const d=+$(dId).value,m=+$(mId).value,y=+$(yId).value;
+  if(!d||!y||y<1300||y>1600)return{err:"أدخل يوماً وسنة هجرية صحيحة (بين 1300 و1600)"};
+  const dt=fromHijri(y,m,d);
+  if(!dt)return{err:"هذا التاريخ الهجري غير موجود، تأكد من اليوم (الشهر 29 أو 30 يوماً)"};
+  return{dt,h:{y,m,d}};
+}
+function diffYMD(a,b,lenPrev){ // a<=b
+  let y=b.y-a.y,m=b.m-a.m,d=b.d-a.d;
+  if(d<0){m--;d+=lenPrev()}
+  if(m<0){y--;m+=12}
+  return{y,m,d};
+}
+const gLenPrev=b=>()=>{const pm=b.m===1?12:b.m-1,py=b.m===1?b.y-1:b.y;return new Date(Date.UTC(py,pm,0)).getUTCDate()};
+
+// UI
+HM.forEach((n,i)=>{["hM","bhM"].forEach(id=>{const o=document.createElement('option');o.value=i+1;o.textContent=n;$(id).appendChild(o)})});
+const now=todayUTC();
+$("today").innerHTML=`<b>${gText(now)}</b>${hText(toHijri(now))}`;
+$("gDate").value=now.toISOString().slice(0,10);
+$("gDate").max=$("bG").max=now.toISOString().slice(0,10);
+const hn=toHijri(now);$("hD").value=hn.d;$("hM").value=hn.m;$("hY").value=hn.y;
+
+function pick(a,b,showA,showB,idA,idB){
+  $(a).onclick=()=>{$(a).classList.add('on');$(b).classList.remove('on');$(idA).classList.remove('hide');$(idB).classList.add('hide')};
+  $(b).onclick=()=>{$(b).classList.add('on');$(a).classList.remove('on');$(idB).classList.remove('hide');$(idA).classList.add('hide')};
+}
+pick('cG','cH',0,0,'cvG','cvH');
+pick('aG','aH',0,0,'agG','agH');
+$("t1").onclick=()=>{$("t1").classList.add('on');$("t2").classList.remove('on');$("p1").classList.remove('hide');$("p2").classList.add('hide')};
+$("t2").onclick=()=>{$("t2").classList.add('on');$("t1").classList.remove('on');$("p2").classList.remove('hide');$("p1").classList.add('hide')};
+
+function show(el,html){el.innerHTML=html;el.classList.add('show')}
+const line=(a,b)=>`<div class="line"><span>${a}</span><span>${b}</span></div>`;
+
+$("goC").onclick=()=>{
+  const r=$("rC");
+  if(!$("cH").classList.contains('on')){
+    const dt=parseDateInput($("gDate").value);
+    if(!dt)return show(r,'<div class="err">اختر التاريخ الميلادي</div>');
+    show(r,`<div>التاريخ الهجري</div><div class="big">${hText(toHijri(dt))}</div>`+line("اليوم",DAYS[dt.getUTCDay()])+line("الميلادي",gText(dt)));
+  }else{
+    const x=readHijri("hD","hM","hY");
+    if(x.err)return show(r,`<div class="err">${x.err}</div>`);
+    show(r,`<div>التاريخ الميلادي</div><div class="big">${gText(x.dt)}</div>`+line("الهجري",hText(x.h)));
+  }
+};
+
+$("goA").onclick=()=>{
+  const r=$("rA");let bd;
+  if(!$("aH").classList.contains('on')){bd=parseDateInput($("bG").value);if(!bd)return show(r,'<div class="err">اختر تاريخ الميلاد</div>')}
+  else{const x=readHijri("bhD","bhM","bhY");if(x.err)return show(r,`<div class="err">${x.err}</div>`);bd=x.dt}
+  const t=todayUTC();
+  if(bd>t)return show(r,'<div class="err">تاريخ الميلاد في المستقبل!</div>');
+  const bg=gParts(bd),tg=gParts(t);
+  const ag=diffYMD(bg,tg,gLenPrev(tg));
+  const bh=toHijri(bd),th=toHijri(t);
+  const ah=diffYMD(bh,th,()=>{const pm=th.m===1?12:th.m-1,py=th.m===1?th.y-1:th.y;return hijriLen(py,pm)});
+  const days=Math.round((t-bd)/DAY);
+  let nb=utc(tg.y,bg.m,bg.d);
+  if(bg.m===2&&bg.d===29&&nb.getUTCMonth()!==1)nb=utc(tg.y,3,1);
+  if(nb<t){const ny=tg.y+1;nb=utc(ny,bg.m,bg.d);if(bg.m===2&&bg.d===29&&nb.getUTCMonth()!==1)nb=utc(ny,3,1)}
+  const left=Math.round((nb-t)/DAY);
+  show(r,`<div>عمرك بالميلادي</div>
+  <div class="grid"><div><b>${ag.y}</b><span>سنة</span></div><div><b>${ag.m}</b><span>شهر</span></div><div><b>${ag.d}</b><span>يوم</span></div></div>
+  <div>عمرك بالهجري</div>
+  <div class="grid"><div><b>${ah.y}</b><span>سنة</span></div><div><b>${ah.m}</b><span>شهر</span></div><div><b>${ah.d}</b><span>يوم</span></div></div>`
+  +line("إجمالي الأيام",days.toLocaleString('en')+" يوم")
+  +line("إجمالي الأسابيع",Math.floor(days/7).toLocaleString('en')+" أسبوع")
+  +line("إجمالي الأشهر (تقريباً)",(ag.y*12+ag.m).toLocaleString('en')+" شهر")
+  +line("الميلاد ميلادي",gText(bd))
+  +line("الميلاد هجري",hText(bh))
+  +line("عيد ميلادك القادم",left===0?"اليوم 🎉":`بعد ${left} يوم`));
+};
+
+if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})})}
+</script>
+</body>
+</html>
